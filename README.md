@@ -7,10 +7,10 @@ Zhangcheng Wang,
 [Lei Huang](https://huangleibuaa.github.io/), 
 [Wenjun Wu](https://openreview.net/profile?id=~wenjun_wu3), 
 
-</div>
-
 [![arXiv](https://img.shields.io/badge/Arxiv-2602.15329-AD1C18.svg?logo=arXiv)](https://arxiv.org/abs/2602.15329) 
 [![](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fopendatalab%2FFakeVLM&count_bg=%23C25AE6&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Visitor&edge_flat=false)](https://hits.seeyoufarm.com)
+
+</div>
 
 ## 📰 News
 - **[2025.2.20]**: 🔥 We have released **EventMemAgent: Hierarchical Event-Centric Memory for Online Video Understanding with Adaptive Tool Use**. Check out the [paper](hhttps://arxiv.org/abs/2602.15329). Our code will come soon.
