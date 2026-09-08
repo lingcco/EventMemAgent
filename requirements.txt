@@ -1,0 +1,16 @@
+# Install the local training backend and EventMemAgent runtime together.
+-c constraints-training.txt
+-e .[vllm]
+aiohttp
+decord
+fastapi
+opencv-python-headless
+pandas
+Pillow
+pyarrow>=19.0.0
+PyYAML
+qwen-vl-utils
+requests
+sentence-transformers
+tqdm
+uvicorn[standard]

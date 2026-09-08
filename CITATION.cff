@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this code, data, or checkpoints, please cite the EventMemAgent paper."
+title: "EventMemAgent: Hierarchical Event-Centric Memory for Online Video Understanding with Adaptive Tool Use"
+type: software
+authors:
+  - family-names: Wen
+    given-names: Siwei
+  - family-names: Wang
+    given-names: Zhangcheng
+  - family-names: Zhang
+    given-names: Xingjian
+  - family-names: Huang
+    given-names: Lei
+  - family-names: Wu
+    given-names: Wenjun
+year: 2026
+license: Apache-2.0
+repository-code: "https://github.com/lingcco/EventMemAgent"
+url: "https://arxiv.org/abs/2602.15329"
+abstract: "Official implementation of EventMemAgent for online video understanding with hierarchical event-centric memory and adaptive tool use."

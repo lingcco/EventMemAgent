@@ -1,0 +1,106 @@
+# 在线视频理解Agent训练配置
+# 基于GRPO算法的多轮对话强化学习训练
+
+hydra:
+  searchpath:
+    - file://verl/trainer/config
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+algorithm:
+  adv_estimator: grpo
+  use_kl_in_reward: False
+
+data:
+  train_batch_size: 64
+  val_batch_size: 16    # validation batch size，null表示用整个val数据集
+  max_prompt_length: 8192
+  max_response_length: 8192
+  filter_overlong_prompts: False
+  truncation: error
+  validation_shuffle: False   # 是否shuffle validation数据
+  # 字段映射 - 与预处理脚本生成的字段名对应
+  # 使用 image_key 而不是 video_key（方案三：将视频帧作为图片列表处理）
+  image_key: short_term_memory
+  prompt_key: prompt
+  # 启用工具参数传递
+  need_tools_kwargs: True
+  # Paths can be set in .env or overridden on the Hydra command line.
+  train_files: ${oc.env:TRAIN_DATA,./data/train/eventmemagent_train.parquet}
+  val_files: ${oc.env:VAL_DATA,null}  # Optional; no validation loader when unset.
+
+
+actor_rollout_ref:  
+  hybrid_engine: True
+  model:
+    path: ${oc.env:BASE_MODEL_PATH,./checkpoints/pretrained/Qwen3-VL-8B-Instruct}
+    use_remove_padding: True
+    enable_gradient_checkpointing: True
+  actor:
+    optim:
+      lr: 1e-6
+      lr_warmup_steps: 5
+    ppo_mini_batch_size: 32
+    ppo_micro_batch_size_per_gpu: 1
+    use_kl_loss: False
+    kl_loss_coef: 0
+    kl_loss_type: low_var_kl
+    entropy_coeff: 0
+    fsdp_config:
+      param_offload: False
+      optimizer_offload: False
+  rollout:  
+    name: vllm
+    mode: async
+    multi_turn:
+      use_inference_chat_template: True
+      enable: True
+      max_assistant_turns: 10
+      tool_config_path: ${oc.env:TOOL_CONFIG_PATH,./configs/tools.yaml}
+    log_prob_micro_batch_size_per_gpu: 4
+    tensor_model_parallel_size: 8
+    gpu_memory_utilization: 0.5
+    n: 8
+    # vLLM引擎额外参数
+    engine_kwargs:
+      vllm:
+        mm_processor_cache_gb: 0  # 多模态处理器缓存大小(GB)
+        disable_mm_preprocessor_cache: True
+    # Validation采样参数（与训练rollout区分）
+    val_kwargs:
+      top_k: -1              # -1 for vllm, 0 for hf
+      top_p: 1.0
+      temperature: 0         # 0表示greedy解码，>0表示随机采样
+      n: 1                   # validation时每个prompt生成的response数量
+      do_sample: False       # False用greedy，True用采样
+
+  ref:
+    log_prob_micro_batch_size_per_gpu: 4
+    fsdp_config:
+      param_offload: True
+
+# 自定义 reward 函数 - 使用工具的 calc_reward 作为最终 reward
+custom_reward_function:
+  path: "./verl/utils/reward_score/video_agent.py"
+  name: "compute_score"
+
+trainer:
+  resume_mode: auto
+  resume_from_path: null
+  critic_warmup: 0
+  logger:
+    - console
+    - tensorboard
+  project_name: online_video_agent
+  experiment_name: eventmemagent_qwen3vl_8b_grpo
+  default_local_dir: ${oc.env:TRAIN_OUTPUT_DIR,./runs/train/eventmemagent_qwen3vl_8b}
+  n_gpus_per_node: 8
+  nnodes: 1
+  save_freq: 30
+  test_freq: 100000         # validation频率（训练step数），-1表示不做validation
+  total_epochs: 1
+  val_before_train: False    # 训练前是否先做一次validation
+  log_val_generations: 1     # validation时log多少个生成样本，0表示不log
+  validation_data_dir: ${trainer.default_local_dir}/validation

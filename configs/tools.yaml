@@ -1,0 +1,86 @@
+# 在线视频理解Agent工具配置
+# 只包含记忆搜索工具，答案直接用 \boxed{} 格式输出
+
+tools:
+  # 记忆搜索工具 - 从长期记忆中检索相关事件
+  - class_name: "verl.tools.memory_search_tool.MemorySearchTool"
+    config: 
+      type: native
+      top_k: 3                      # 每次搜索返回的最大事件数
+      similarity_threshold: 0.3     # 相似度阈值
+      use_image_in_response: true   # 响应中是否包含事件图像
+      embedding_model: ${oc.env:EMBEDDING_MODEL_PATH,./checkpoints/pretrained/Qwen3-Embedding-0.6B}
+    tool_schema:
+      type: "function"
+      function:
+        name: "search_memory"
+        description: "Search through long-term memory to find relevant events from the video. Supports two modes: (1) text query search by semantic similarity, (2) time range search to find events overlapping with a specific time period."
+        parameters:
+          type: "object"
+          properties:
+            query:
+              type: "string"
+              description: "The search query to find relevant events by semantic similarity. Include multiple relevant keywords for better results."
+            start_time:
+              type: "number"
+              description: "Start time (in seconds) of the time range to search. Must be used together with end_time."
+            end_time:
+              type: "number"
+              description: "End time (in seconds) of the time range to search. Must be used together with start_time."
+          required: []
+
+  # OCR 工具 - 通过 API 调用 DeepSeek-OCR 进行文字识别
+  - class_name: "verl.tools.ocr_tool.OCRTool"
+    config: 
+      type: native
+      api_url: ${oc.env:OCR_API_URL,http://localhost:8089/ocr}
+      base_size: 1024
+      image_size: 640
+      crop_mode: true
+      timeout: 6000  # API 超时时间（秒）
+    tool_schema:
+      type: "function"
+      function:
+        name: "ocr"
+        description: "Perform OCR (Optical Character Recognition) on an image to extract text. Use this when you need to read text from images in the video. You can specify either an event_id to OCR an image from long-term memory, or a frame_index to OCR a frame from short-term memory."
+        parameters:
+          type: "object"
+          properties:
+            event_id:
+              type: "integer"
+              description: "The event ID (0-indexed) from long-term memory to perform OCR on. Use this to read text from a specific event's image."
+            frame_index:
+              type: "integer"
+              description: "The frame index (0-indexed) from short-term memory to perform OCR on. Use this to read text from the current video frames."
+          required: []
+
+  # 目标检测工具 - 通过 API 调用 Grounding DINO 进行零样本目标检测
+  - class_name: "verl.tools.detection_tool.DetectionTool"
+    config: 
+      type: native
+      api_url: ${oc.env:DETECTION_API_URL,http://localhost:8090/detect}
+      box_threshold: 0.4      # 边界框置信度阈值
+      text_threshold: 0.3     # 文本匹配阈值
+      timeout: 600             # API 超时时间（秒）
+    tool_schema:
+      type: "function"
+      function:
+        name: "detect_objects"
+        description: "Detect specific objects in an image using zero-shot object detection. You need to specify what objects to look for. Use this to find and locate objects, count items, or verify object presence in video frames."
+        parameters:
+          type: "object"
+          properties:
+            labels:
+              type: "array"
+              items:
+                type: "string"
+              description: "List of object labels to detect (e.g., ['dog', 'cat', 'person', 'car']). Labels should be simple nouns or short phrases."
+            event_id:
+              type: "integer"
+              description: "The event ID (0-indexed) from long-term memory to detect objects in."
+            frame_index:
+              type: "integer"
+              description: "The frame index (0-indexed) from short-term memory to detect objects in. If neither event_id nor frame_index is specified, the last frame is used."
+          required: ["labels"]
+
+# 注意：答案不再作为工具，模型直接用 \boxed{} 格式输出最终答案
