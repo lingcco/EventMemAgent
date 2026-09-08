@@ -30,11 +30,11 @@ Create an isolated environment and install the local fork:
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip setuptools wheel packaging ninja
-python -m pip install -r requirements.txt
-MAX_JOBS=4 python -m pip install --no-build-isolation -c constraints-training.txt flash-attn==2.8.1
+pip install -U pip setuptools wheel packaging ninja
+pip install -r requirements.txt
+MAX_JOBS=4 pip install flash-attn==2.8.1 --no-build-isolation
 
-python -m pip check
+pip check
 python scripts/utils/validate_setup.py --mode runtime
 ```
 

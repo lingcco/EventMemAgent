@@ -50,7 +50,7 @@ Online video understanding requires an agent to process an unbounded stream whil
 
 ## 🛠️ Installation
 
-Use Linux x86_64, Python 3.12, CUDA Toolkit 12.8, PyTorch 2.8.0, Transformers 4.57.3, and vLLM 0.11.0. A CUDA-12.8-compatible NVIDIA driver, a C++ compiler, and `ffmpeg` must be installed first; `nvcc --version` and `ffmpeg -version` should work. The paper uses eight 80GB A100 GPUs for training. Core dependencies are pinned in [`constraints-training.txt`](constraints-training.txt).
+Requires Linux x86_64, Python 3.12, CUDA Toolkit 12.8 with a compatible NVIDIA driver, a C++ compiler, and `ffmpeg`. Dependency versions are pinned in [`constraints-training.txt`](constraints-training.txt).
 
 ```bash
 git clone https://github.com/lingcco/EventMemAgent.git
@@ -58,17 +58,14 @@ cd EventMemAgent
 
 python3.12 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip setuptools wheel packaging ninja
-python -m pip install -r requirements.txt
-MAX_JOBS=4 python -m pip install --no-build-isolation -c constraints-training.txt flash-attn==2.8.1
-
-python -m pip check
-python scripts/utils/validate_setup.py --mode runtime
+pip install -U pip setuptools wheel packaging ninja
+pip install -r requirements.txt
+MAX_JOBS=4 pip install flash-attn==2.8.1 --no-build-isolation
 
 cp .env.example .env
 ```
 
-See [Installation](docs/INSTALL.md) for CUDA and service setup details.
+See [Installation](docs/INSTALL.md) for environment checks, CUDA, and service setup.
 
 ## 📦 Models and Data
 
@@ -287,4 +284,4 @@ If you find EventMemAgent useful, please cite:
 
 ## 📨 Contact
 
-For questions about the paper or code, please open a GitHub issue or contact Lei Huang at `huangleiai@buaa.edu.cn`.
+For questions about the paper or code, please open a GitHub issue or contact us at [21376195@buaa.edu.cn](mailto:21376195@buaa.edu.cn).
